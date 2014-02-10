@@ -25,20 +25,38 @@ def is_on(img):
 logging.basicConfig(filename='/var/log/idha.log',level=logging.INFO)
 
 class CameraGrabber:
-	def __init__(self):
-		logging.info("Starting Camera")
-		self.process = False
-		os.system('killall raspistill')
-		self.capture()
-		time.sleep(3)
-	def capture(self):
-		if self.process == False:
-			logging.info("Capturing Image")
-			cmd = "raspistill -vf -hf -o /run/shm/image.jpg -e bmp -roi 0.594,0.534,0.011,0.011 -tl 1000 -w 28 -h 21 -t 21600000 -n >/run/shm/cam.log"
-			self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
-	def image(self):
-		return "/run/shm/image.jpg"
-		
+    @property
+    def isRunning(self):
+        if self.process == False:
+            return False
+        elif self.process.poll() != None:
+            return False
+        else:
+            return True
+
+    def __init__(self):
+        self.reset()
+    def reset(self):
+        logging.info("(Re)starting Camera")
+        self.process = False
+        os.system('killall raspistill')
+        self.capture()
+        time.sleep(3)
+
+    def capture(self):
+        if self.process == False:
+            logging.info("Capturing Image")
+            cmd = "raspistill -vf -hf -o /run/shm/image.jpg -e bmp -roi 0.594,0.534,0.011,0.011 -tl 1000 -w 28 -h 21 -t 21600000 -n >/run/shm/cam.log"
+            self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+    def checkToRun(self):
+        if not self.isRunning:
+            self.reset()
+        else:
+            pass
+    def image(self):
+        self.checkToRun()
+        return "/run/shm/image.jpg"
+
 class MusicPlayer:
 	#PIPENAME="/tmp/omx.pip"
 	
@@ -89,7 +107,6 @@ while True:
 			count_on = count_on +1
 			logging.debug("Count amount: %d" % count_on)
 	else:
-		print "off"
 		count_on =0
 		if count_off > 20:
 			logging.info("stop music")
