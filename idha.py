@@ -48,6 +48,7 @@ class CameraGrabber:
             logging.info("Capturing Image")
             cmd = "raspistill -vf -hf -o /run/shm/image.jpg -e bmp -roi 0.594,0.534,0.011,0.011 -tl 1000 -w 28 -h 21 -t 21600000 -n >/run/shm/cam.log"
             self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+            time.sleep(3)
     def checkToRun(self):
         if not self.isRunning:
             self.reset()
